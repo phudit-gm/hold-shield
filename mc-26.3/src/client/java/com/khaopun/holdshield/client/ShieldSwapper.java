@@ -73,21 +73,11 @@ public final class ShieldSwapper {
 	private LocalPlayer player;
 	private ClientLevel level;
 
-	private boolean verifying;
-	private int verifyTicks;
-	private int verifyRetries;
-	private int verifySource;
-	private int verifyHotbar;
-
 	public void tick(Minecraft client, boolean keyDown) {
 		LocalPlayer p = client.player;
 		if (p == null || client.gameMode == null || client.level == null) {
 			forget();
 			return;
-		}
-
-		if (verifying) {
-			verifyRestore(client, p);
 		}
 
 		switch (phase) {
@@ -150,8 +140,6 @@ public final class ShieldSwapper {
 			return;
 		}
 
-		// A new round supersedes any restore that is still being double-checked.
-		verifying = false;
 		debug("begin: selected={} shieldSlot={} (hand={}, shieldSlotItem={})",
 				sel, best, inv.getItem(sel), inv.getItem(best));
 		originalSel = sel;
@@ -164,9 +152,12 @@ public final class ShieldSwapper {
 				inv.setSelectedSlot(best);
 			}
 		} else {
+			boolean emptyHand = inv.getItem(sel).isEmpty();
 			shieldHotbar = sel;
-			sourceInvSlot = best;
 			swapWithHotbar(client, p, best, sel);
+			// Empty hand: the shield is pulled into the empty hotbar slot and stays there. Putting it back into
+			// the (now empty) inventory slot was rejected by the server, so nothing is restored in this case.
+			sourceInvSlot = emptyHand ? -1 : best;
 		}
 		phase = Phase.ACTIVE;
 		client.options.keyUse.setDown(true);
@@ -220,13 +211,7 @@ public final class ShieldSwapper {
 		if (sourceInvSlot >= 0) {
 			ItemStack inHotbar = inv.getItem(shieldHotbar);
 			if (inHotbar.is(Items.SHIELD) || inHotbar.isEmpty()) {
-				pickupSwap(client, p, sourceInvSlot, shieldHotbar);
-				// The server may drop the click if it was still busy with the first swap; check again shortly.
-				verifying = true;
-				verifyTicks = 0;
-				verifyRetries = 0;
-				verifySource = sourceInvSlot;
-				verifyHotbar = shieldHotbar;
+				swapWithHotbar(client, p, sourceInvSlot, shieldHotbar);
 			} else {
 				LOGGER.warn("Not restoring: hotbar slot {} no longer holds the shield", shieldHotbar);
 			}
@@ -234,29 +219,6 @@ public final class ShieldSwapper {
 			inv.setSelectedSlot(originalSel);
 		}
 		forget();
-	}
-
-	/**
-	 * Ten ticks after a restore, make sure the shield really is back in its source slot. The client predicts the
-	 * result of a click immediately, but the server can reject it (state id mismatch) and revert the client, which
-	 * would leave the shield in the hotbar. If so, send the swap again (up to 3 times).
-	 */
-	private void verifyRestore(Minecraft client, LocalPlayer p) {
-		verifyTicks++;
-		if (verifyTicks % 10 != 0) {
-			return;
-		}
-		Inventory inv = p.getInventory();
-		boolean back = inv.getItem(verifySource).is(Items.SHIELD);
-		boolean stillInHotbar = inv.getItem(verifyHotbar).is(Items.SHIELD);
-		debug("verify #{}: shieldBackInSource={} shieldStillInHotbar={}", verifyTicks / 10, back, stillInHotbar);
-		if (back || !stillInHotbar || verifyRetries >= 3 || client.gui.screen() != null) {
-			verifying = false;
-			return;
-		}
-		verifyRetries++;
-		LOGGER.info("Hold Shield: restore was not applied, retrying ({}/3)", verifyRetries);
-		pickupSwap(client, p, verifySource, verifyHotbar);
 	}
 
 	private static void debug(String message, Object... args) {
@@ -269,21 +231,6 @@ public final class ShieldSwapper {
 	private static void swapWithHotbar(Minecraft client, LocalPlayer p, int inventorySlot, int hotbarSlot) {
 		client.gameMode.handleContainerInput(
 				p.inventoryMenu.containerId, inventorySlot, hotbarSlot, ContainerInput.SWAP, p);
-	}
-
-	/**
-	 * Swaps a main-inventory slot with a hotbar slot using pickup clicks (pick up, put down, put the leftover back),
-	 * the same way inventory-swap mods do it. A single SWAP click was ignored when putting the shield back into an
-	 * empty inventory slot (empty hand case), so restores use this instead.
-	 */
-	private static void pickupSwap(Minecraft client, LocalPlayer p, int inventorySlot, int hotbarSlot) {
-		int menuId = p.inventoryMenu.containerId;
-		int hotbarContainerSlot = 36 + hotbarSlot;
-		client.gameMode.handleContainerInput(menuId, hotbarContainerSlot, 0, ContainerInput.PICKUP, p);
-		client.gameMode.handleContainerInput(menuId, inventorySlot, 0, ContainerInput.PICKUP, p);
-		if (!p.containerMenu.getCarried().isEmpty()) {
-			client.gameMode.handleContainerInput(menuId, hotbarContainerSlot, 0, ContainerInput.PICKUP, p);
-		}
 	}
 
 	private void forget() {
