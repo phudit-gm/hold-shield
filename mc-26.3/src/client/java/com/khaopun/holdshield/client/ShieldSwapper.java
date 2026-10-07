@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
  *       best in hotbar     -> remember originalSel; select that hotbar slot
  *       best in main inv   -> remember originalSel + sourceInvSlot;
  *                             SWAP click: source slot <-> selected hotbar slot (one packet, offhand untouched)
+ *                             if the selected hotbar slot was EMPTY (empty hand): the shield is simply pulled
+ *                             into that slot and stays there (sourceInvSlot = -1, nothing to restore later)
  *       hold the vanilla "use" key down so vanilla does not release the item, then use the main hand item
  *       phase = ACTIVE
  *
