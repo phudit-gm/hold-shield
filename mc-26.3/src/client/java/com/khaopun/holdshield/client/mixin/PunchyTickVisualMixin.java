@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class PunchyTickVisualMixin {
 	@Inject(method = "lambda$init$0", at = @At("HEAD"), require = 0, remap = false)
 	private static void holdshield$openPunchyTick(Minecraft client, CallbackInfo ci) {
-		ShieldVisual.open();
+		ShieldVisual.open("punchy.tick");
 	}
 
 	@Inject(method = "lambda$init$0", at = @At("RETURN"), require = 0, remap = false)

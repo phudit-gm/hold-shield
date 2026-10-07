@@ -233,6 +233,7 @@ public final class ShieldSwapper {
 		}
 		client.options.keyUse.setDown(false);
 		KeyMapping.setAll();
+		ShieldVisual.logAndReset();
 
 		Inventory inv = p.getInventory();
 		debug("restore: source={} hotbar={} originalSel={} selected={} hotbarItem={} sourceItem={}",

@@ -26,7 +26,7 @@ public abstract class GameRendererVisualMixin {
 	private void holdshield$wrapSubmit(FirstPersonHandsAndItemsRenderer renderer, float partialTick, PoseStack poseStack,
 			SubmitNodeCollector collector, PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState handsState,
 			Operation<Void> original) {
-		ShieldVisual.open();
+		ShieldVisual.open("render.submit");
 		try {
 			original.call(renderer, partialTick, poseStack, collector, playerState, handsState);
 		} finally {

@@ -19,6 +19,26 @@ public final class ShieldVisual {
 	private ShieldVisual() {
 	}
 
+	/** Debug only: how many times each hook opened the window during the current round, and fake getter hits. */
+	private static final java.util.Map<String, Integer> COUNTS = new java.util.TreeMap<>();
+
+	/** Opens the window if a round is active; returns whether it was opened. */
+	public static boolean open(String source) {
+		boolean opened = open();
+		if (opened && HoldShieldConfig.get().debugLogging) {
+			COUNTS.merge(source, 1, Integer::sum);
+		}
+		return opened;
+	}
+
+	/** Writes (and clears) the per-round hook counts to the log; called when a round ends. */
+	public static void logAndReset() {
+		if (HoldShieldConfig.get().debugLogging) {
+			org.slf4j.LoggerFactory.getLogger("holdshield").info("[debug] fake-hands window opens this round: {}", COUNTS);
+		}
+		COUNTS.clear();
+	}
+
 	/** Opens the window if a round is active; returns whether it was opened. */
 	public static boolean open() {
 		Minecraft client = Minecraft.getInstance();

@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class FirstPersonHandsVisualMixin {
 	@Inject(method = "tick", at = @At("HEAD"))
 	private void holdshield$openTick(CallbackInfo ci) {
-		ShieldVisual.open();
+		ShieldVisual.open("hands.tick");
 	}
 
 	@Inject(method = "tick", at = @At("RETURN"))
@@ -25,7 +25,7 @@ public abstract class FirstPersonHandsVisualMixin {
 
 	@Inject(method = "extractRenderState", at = @At("HEAD"))
 	private void holdshield$openExtract(CallbackInfo ci) {
-		ShieldVisual.open();
+		ShieldVisual.open("hands.extract");
 	}
 
 	@Inject(method = "extractRenderState", at = @At("RETURN"))
