@@ -220,7 +220,7 @@ public final class ShieldSwapper {
 		if (sourceInvSlot >= 0) {
 			ItemStack inHotbar = inv.getItem(shieldHotbar);
 			if (inHotbar.is(Items.SHIELD) || inHotbar.isEmpty()) {
-				swapWithHotbar(client, p, sourceInvSlot, shieldHotbar);
+				pickupSwap(client, p, sourceInvSlot, shieldHotbar);
 				// The server may drop the click if it was still busy with the first swap; check again shortly.
 				verifying = true;
 				verifyTicks = 0;
@@ -256,7 +256,7 @@ public final class ShieldSwapper {
 		}
 		verifyRetries++;
 		LOGGER.info("Hold Shield: restore was not applied, retrying ({}/3)", verifyRetries);
-		swapWithHotbar(client, p, verifySource, verifyHotbar);
+		pickupSwap(client, p, verifySource, verifyHotbar);
 	}
 
 	private static void debug(String message, Object... args) {
@@ -269,6 +269,21 @@ public final class ShieldSwapper {
 	private static void swapWithHotbar(Minecraft client, LocalPlayer p, int inventorySlot, int hotbarSlot) {
 		client.gameMode.handleInventoryMouseClick(
 				p.inventoryMenu.containerId, inventorySlot, hotbarSlot, ClickType.SWAP, p);
+	}
+
+	/**
+	 * Swaps a main-inventory slot with a hotbar slot using pickup clicks (pick up, put down, put the leftover back),
+	 * the same way inventory-swap mods do it. A single SWAP click was ignored when putting the shield back into an
+	 * empty inventory slot (empty hand case), so restores use this instead.
+	 */
+	private static void pickupSwap(Minecraft client, LocalPlayer p, int inventorySlot, int hotbarSlot) {
+		int menuId = p.inventoryMenu.containerId;
+		int hotbarContainerSlot = 36 + hotbarSlot;
+		client.gameMode.handleInventoryMouseClick(menuId, hotbarContainerSlot, 0, ClickType.PICKUP, p);
+		client.gameMode.handleInventoryMouseClick(menuId, inventorySlot, 0, ClickType.PICKUP, p);
+		if (!p.containerMenu.getCarried().isEmpty()) {
+			client.gameMode.handleInventoryMouseClick(menuId, hotbarContainerSlot, 0, ClickType.PICKUP, p);
+		}
 	}
 
 	private void forget() {
