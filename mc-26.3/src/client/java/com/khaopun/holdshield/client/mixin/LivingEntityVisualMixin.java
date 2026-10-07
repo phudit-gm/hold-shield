@@ -39,4 +39,34 @@ public abstract class LivingEntityVisualMixin {
 			cir.setReturnValue(InteractionHand.OFF_HAND);
 		}
 	}
+
+	// The shown pose is the relaxed two-handed one (item up in the right hand, shield low in the left hand), so the
+	// renderer must not see a "raised shield" use state. Only the render window sees this.
+	@Inject(method = "isUsingItem", at = @At("HEAD"), cancellable = true)
+	private void holdshield$notUsing(CallbackInfoReturnable<Boolean> cir) {
+		if (ShieldVisual.applies((LivingEntity) (Object) this)) {
+			cir.setReturnValue(false);
+		}
+	}
+
+	@Inject(method = "isBlocking", at = @At("HEAD"), cancellable = true)
+	private void holdshield$notBlocking(CallbackInfoReturnable<Boolean> cir) {
+		if (ShieldVisual.applies((LivingEntity) (Object) this)) {
+			cir.setReturnValue(false);
+		}
+	}
+
+	@Inject(method = "getUseItem", at = @At("HEAD"), cancellable = true)
+	private void holdshield$noUseItem(CallbackInfoReturnable<ItemStack> cir) {
+		if (ShieldVisual.applies((LivingEntity) (Object) this)) {
+			cir.setReturnValue(ItemStack.EMPTY);
+		}
+	}
+
+	@Inject(method = "getUseItemRemainingTicks", at = @At("HEAD"), cancellable = true)
+	private void holdshield$noUseTicks(CallbackInfoReturnable<Integer> cir) {
+		if (ShieldVisual.applies((LivingEntity) (Object) this)) {
+			cir.setReturnValue(0);
+		}
+	}
 }
