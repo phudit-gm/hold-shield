@@ -1,0 +1,46 @@
+﻿# Hold Shield
+
+A client-side Minecraft (Java Edition) Fabric mod. Hold a key and a shield from **anywhere in your inventory** is swapped into your main hand and raised. Release the key and every item goes back to the exact slot it came from. The offhand is never touched.
+
+> Status: early development. Project scaffolding only; the swap logic is not implemented yet.
+
+## Features (planned)
+
+- One rebindable keybind (default: `V`), listed in *Options → Controls*.
+- Works with the shield in the hotbar or in the main inventory.
+- With several shields, the one with the most remaining durability is used.
+- No server-side install needed: it only sends actions a vanilla client can send (hotbar selection, inventory slot clicks, use item), so it works on vanilla servers.
+- Safe restore on edge cases: shield breaks, death, dimension change, disconnect, GUI opened, hotbar scrolled, key pressed again before restore finished.
+
+## Supported versions
+
+| Minecraft | Loader | Java | Directory |
+|-----------|--------|------|-----------|
+| 1.21.11   | Fabric | 21   | [`mc-1.21.11`](mc-1.21.11) |
+| 26.3      | Fabric | 25   | [`mc-26.3`](mc-26.3) |
+
+Each version is its own Gradle project, since Minecraft internals differ between them.
+
+## Building
+
+The Loom Gradle plugin used by the templates needs a **JDK 25** to run Gradle, even for the 1.21.11 project (its bytecode still targets Java 21).
+
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot'
+cd mc-1.21.11   # or mc-26.3
+.\gradlew.bat build
+```
+
+The mod jar is written to `build/libs/holdshield-<version>.jar`.
+
+## Behaviour on hotbar change
+
+If you scroll or change the selected hotbar slot while the key is held, everything is restored immediately and that round is cancelled (the key must be released and pressed again to start a new one).
+
+## Project brief
+
+See [`brief-hold-shield-mainhand.md`](brief-hold-shield-mainhand.md) for the full scope and acceptance criteria.
+
+## License
+
+MIT

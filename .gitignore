@@ -1,0 +1,25 @@
+﻿# Gradle / build output
+.gradle/
+build/
+out/
+run/
+.kotlin/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+bin/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+hs_err_pid*
