@@ -31,6 +31,8 @@ public class HoldShieldClient implements ClientModInitializer {
 
 		// Start of tick, so the swap and the "use item" happen before vanilla handles input this tick.
 		ClientTickEvents.START_CLIENT_TICK.register(client -> {
+			// Safety net: never let a fake-hands window outlive a tick.
+			ShieldVisual.close();
 			SWAPPER.tick(client, holdKey.isDown());
 			while (settingsKey.consumeClick()) {
 				client.setScreenAndShow(new HoldShieldConfigScreen(client.gui.screen()));

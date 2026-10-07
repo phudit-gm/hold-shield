@@ -6,7 +6,8 @@
 	"client": [
 		"LivingEntityVisualMixin",
 		"FirstPersonHandsVisualMixin",
-		"GameRendererVisualMixin"
+		"GameRendererVisualMixin",
+		"PunchyTickVisualMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0
