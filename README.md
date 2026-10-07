@@ -1,10 +1,10 @@
-﻿# Hold Shield
+# Hold Shield
 
 A client-side Minecraft (Java Edition) Fabric mod. Hold a key and a shield from **anywhere in your inventory** is swapped into your main hand and raised. Release the key and every item goes back to the exact slot it came from. The offhand is never touched.
 
-> Status: early development. Project scaffolding only; the swap logic is not implemented yet.
+> Status: the swap/restore logic is implemented for both versions and compiles. It has **not yet been tested in game** (singleplayer, dedicated server, edge cases); see the acceptance criteria in the brief.
 
-## Features (planned)
+## Features
 
 - One rebindable keybind (default: `V`), listed in *Options → Controls*.
 - Works with the shield in the hotbar or in the main inventory.
