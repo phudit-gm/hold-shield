@@ -1,6 +1,16 @@
 package com.khaopun.holdshield.client;
 
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * Swap / restore state machine (called once per client tick with the current key state).
@@ -52,7 +62,157 @@ import net.minecraft.client.Minecraft;
  * one tick, and a new round only starts from IDLE after the key was seen up.
  */
 public final class ShieldSwapper {
+	private static final Logger LOGGER = LoggerFactory.getLogger("holdshield");
+
+	private enum Phase { IDLE, ACTIVE, WAIT_RELEASE }
+
+	private Phase phase = Phase.IDLE;
+	private int shieldHotbar;
+	private int sourceInvSlot;
+	private int originalSel;
+	private LocalPlayer player;
+	private ClientLevel level;
+
 	public void tick(Minecraft client, boolean keyDown) {
-		// implemented in the next commit
+		LocalPlayer p = client.player;
+		if (p == null || client.gameMode == null || client.level == null) {
+			forget();
+			return;
+		}
+
+		switch (phase) {
+			case IDLE -> {
+				if (keyDown && client.screen == null && !p.isDeadOrDying()) {
+					begin(client, p);
+				}
+			}
+			case ACTIVE -> tickActive(client, p, keyDown);
+			case WAIT_RELEASE -> {
+				if (!keyDown) {
+					phase = Phase.IDLE;
+				}
+			}
+		}
+	}
+
+	private void tickActive(Minecraft client, LocalPlayer p, boolean keyDown) {
+		if (player.isDeadOrDying() || p.isDeadOrDying()) {
+			// Death: the server owns the inventory now, nothing to restore.
+			client.options.keyUse.setDown(false);
+			KeyMapping.setAll();
+			forget();
+			phase = keyDown ? Phase.WAIT_RELEASE : Phase.IDLE;
+			return;
+		}
+		if (p != player || client.level != level) {
+			// Dimension change: vanilla creates a new player and level, but the inventory carries over.
+			restore(client, p);
+			phase = keyDown ? Phase.WAIT_RELEASE : Phase.IDLE;
+			return;
+		}
+		Inventory inv = p.getInventory();
+		if (client.screen != null
+				|| inv.getSelectedSlot() != shieldHotbar
+				|| !inv.getItem(shieldHotbar).is(Items.SHIELD)) {
+			restore(client, p);
+			phase = keyDown ? Phase.WAIT_RELEASE : Phase.IDLE;
+			return;
+		}
+		if (!keyDown) {
+			restore(client, p);
+			phase = Phase.IDLE;
+			return;
+		}
+		// Keep the shield raised: vanilla releases the item whenever the use key is not down.
+		client.options.keyUse.setDown(true);
+		if (!p.isUsingItem()) {
+			client.gameMode.useItem(p, InteractionHand.MAIN_HAND);
+		}
+	}
+
+	private void begin(Minecraft client, LocalPlayer p) {
+		Inventory inv = p.getInventory();
+		int sel = inv.getSelectedSlot();
+		int best = findBestShield(inv, sel);
+		if (best < 0) {
+			phase = Phase.WAIT_RELEASE;
+			return;
+		}
+
+		originalSel = sel;
+		player = p;
+		level = client.level;
+		if (best < Inventory.getSelectionSize()) {
+			shieldHotbar = best;
+			sourceInvSlot = -1;
+			if (best != sel) {
+				inv.setSelectedSlot(best);
+			}
+		} else {
+			shieldHotbar = sel;
+			sourceInvSlot = best;
+			swapWithHotbar(client, p, best, sel);
+		}
+		phase = Phase.ACTIVE;
+		client.options.keyUse.setDown(true);
+		client.gameMode.useItem(p, InteractionHand.MAIN_HAND);
+	}
+
+	/** Shield with the most remaining durability; ties go to the selected slot, then hotbar, then lowest index. */
+	private static int findBestShield(Inventory inv, int sel) {
+		int best = -1;
+		int bestDurability = -1;
+		for (int n = -1; n < 36; n++) {
+			int slot = n == -1 ? sel : n;
+			if (n != -1 && slot == sel) {
+				continue;
+			}
+			ItemStack stack = inv.getItem(slot);
+			if (!stack.is(Items.SHIELD)) {
+				continue;
+			}
+			int durability = stack.getMaxDamage() - stack.getDamageValue();
+			if (durability > bestDurability) {
+				best = slot;
+				bestDurability = durability;
+			}
+		}
+		return best;
+	}
+
+	private void restore(Minecraft client, LocalPlayer p) {
+		if (p.isUsingItem()) {
+			client.gameMode.releaseUsingItem(p);
+		}
+		client.options.keyUse.setDown(false);
+		KeyMapping.setAll();
+
+		Inventory inv = p.getInventory();
+		if (sourceInvSlot >= 0) {
+			ItemStack inHotbar = inv.getItem(shieldHotbar);
+			if (inHotbar.is(Items.SHIELD) || inHotbar.isEmpty()) {
+				swapWithHotbar(client, p, sourceInvSlot, shieldHotbar);
+			} else {
+				LOGGER.warn("Not restoring: hotbar slot {} no longer holds the shield", shieldHotbar);
+			}
+		} else if (inv.getSelectedSlot() == shieldHotbar) {
+			inv.setSelectedSlot(originalSel);
+		}
+		forget();
+	}
+
+	/** One SWAP click between a main-inventory slot (9-35) and a hotbar slot, sent through the player's own menu. */
+	private static void swapWithHotbar(Minecraft client, LocalPlayer p, int inventorySlot, int hotbarSlot) {
+		client.gameMode.handleInventoryMouseClick(
+				p.inventoryMenu.containerId, inventorySlot, hotbarSlot, ClickType.SWAP, p);
+	}
+
+	private void forget() {
+		player = null;
+		level = null;
+		sourceInvSlot = -1;
+		if (phase == Phase.ACTIVE) {
+			phase = Phase.IDLE;
+		}
 	}
 }
