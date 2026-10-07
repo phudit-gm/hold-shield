@@ -13,6 +13,7 @@ public class HoldShieldClient implements ClientModInitializer {
 			KeyMapping.Category.register(Identifier.fromNamespaceAndPath("holdshield", "main"));
 
 	private static KeyMapping holdKey;
+	private static KeyMapping settingsKey;
 	private static final ShieldSwapper SWAPPER = new ShieldSwapper();
 
 	@Override
@@ -20,7 +21,16 @@ public class HoldShieldClient implements ClientModInitializer {
 		holdKey = KeyBindingHelper.registerKeyBinding(
 				new KeyMapping("key.holdshield.hold", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY));
 
+		// Unbound by default; Mod Menu support can be added later.
+		settingsKey = KeyBindingHelper.registerKeyBinding(
+				new KeyMapping("key.holdshield.settings", InputConstants.UNKNOWN.getValue(), CATEGORY));
+
 		// Start of tick, so the swap and the "use item" happen before vanilla handles input this tick.
-		ClientTickEvents.START_CLIENT_TICK.register(client -> SWAPPER.tick(client, holdKey.isDown()));
+		ClientTickEvents.START_CLIENT_TICK.register(client -> {
+			SWAPPER.tick(client, holdKey.isDown());
+			while (settingsKey.consumeClick()) {
+				client.setScreen(new HoldShieldConfigScreen(client.screen));
+			}
+		});
 	}
 }

@@ -73,6 +73,12 @@ public final class ShieldSwapper {
 	private LocalPlayer player;
 	private ClientLevel level;
 
+	private boolean verifying;
+	private int verifyTicks;
+	private int verifyRetries;
+	private int verifySource;
+	private int verifyHotbar;
+
 	public void tick(Minecraft client, boolean keyDown) {
 		LocalPlayer p = client.player;
 		if (p == null || client.gameMode == null || client.level == null) {
@@ -80,9 +86,13 @@ public final class ShieldSwapper {
 			return;
 		}
 
+		if (verifying) {
+			verifyRestore(client, p);
+		}
+
 		switch (phase) {
 			case IDLE -> {
-				if (keyDown && client.screen == null && !p.isDeadOrDying()) {
+				if (keyDown && HoldShieldConfig.get().enabled && client.screen == null && !p.isDeadOrDying()) {
 					begin(client, p);
 				}
 			}
@@ -133,12 +143,17 @@ public final class ShieldSwapper {
 	private void begin(Minecraft client, LocalPlayer p) {
 		Inventory inv = p.getInventory();
 		int sel = inv.getSelectedSlot();
-		int best = findBestShield(inv, sel);
+		int best = findBestShield(inv, sel, HoldShieldConfig.get().priority);
 		if (best < 0) {
+			debug("press: no shield in inventory");
 			phase = Phase.WAIT_RELEASE;
 			return;
 		}
 
+		// A new round supersedes any restore that is still being double-checked.
+		verifying = false;
+		debug("begin: selected={} shieldSlot={} (hand={}, shieldSlotItem={})",
+				sel, best, inv.getItem(sel), inv.getItem(best));
 		originalSel = sel;
 		player = p;
 		level = client.level;
@@ -158,9 +173,13 @@ public final class ShieldSwapper {
 		client.gameMode.useItem(p, InteractionHand.MAIN_HAND);
 	}
 
-	/** Shield with the most remaining durability; ties go to the selected slot, then hotbar, then lowest index. */
-	private static int findBestShield(Inventory inv, int sel) {
+	/**
+	 * Picks the shield according to the configured priority. Within the same group the most remaining durability
+	 * wins; ties go to the selected slot, then hotbar, then lowest index.
+	 */
+	private static int findBestShield(Inventory inv, int sel, HoldShieldConfig.Priority priority) {
 		int best = -1;
+		int bestTier = -1;
 		int bestDurability = -1;
 		for (int n = -1; n < 36; n++) {
 			int slot = n == -1 ? sel : n;
@@ -171,9 +190,16 @@ public final class ShieldSwapper {
 			if (!stack.is(Items.SHIELD)) {
 				continue;
 			}
+			boolean inHotbar = slot < Inventory.getSelectionSize();
+			int tier = switch (priority) {
+				case DURABILITY -> 0;
+				case HOTBAR_FIRST -> inHotbar ? 1 : 0;
+				case INVENTORY_FIRST -> inHotbar ? 0 : 1;
+			};
 			int durability = stack.getMaxDamage() - stack.getDamageValue();
-			if (durability > bestDurability) {
+			if (tier > bestTier || (tier == bestTier && durability > bestDurability)) {
 				best = slot;
+				bestTier = tier;
 				bestDurability = durability;
 			}
 		}
@@ -188,10 +214,19 @@ public final class ShieldSwapper {
 		KeyMapping.setAll();
 
 		Inventory inv = p.getInventory();
+		debug("restore: source={} hotbar={} originalSel={} selected={} hotbarItem={} sourceItem={}",
+				sourceInvSlot, shieldHotbar, originalSel, inv.getSelectedSlot(),
+				inv.getItem(shieldHotbar), sourceInvSlot >= 0 ? inv.getItem(sourceInvSlot) : "-");
 		if (sourceInvSlot >= 0) {
 			ItemStack inHotbar = inv.getItem(shieldHotbar);
 			if (inHotbar.is(Items.SHIELD) || inHotbar.isEmpty()) {
 				swapWithHotbar(client, p, sourceInvSlot, shieldHotbar);
+				// The server may drop the click if it was still busy with the first swap; check again shortly.
+				verifying = true;
+				verifyTicks = 0;
+				verifyRetries = 0;
+				verifySource = sourceInvSlot;
+				verifyHotbar = shieldHotbar;
 			} else {
 				LOGGER.warn("Not restoring: hotbar slot {} no longer holds the shield", shieldHotbar);
 			}
@@ -199,6 +234,35 @@ public final class ShieldSwapper {
 			inv.setSelectedSlot(originalSel);
 		}
 		forget();
+	}
+
+	/**
+	 * Ten ticks after a restore, make sure the shield really is back in its source slot. The client predicts the
+	 * result of a click immediately, but the server can reject it (state id mismatch) and revert the client, which
+	 * would leave the shield in the hotbar. If so, send the swap again (up to 3 times).
+	 */
+	private void verifyRestore(Minecraft client, LocalPlayer p) {
+		verifyTicks++;
+		if (verifyTicks % 10 != 0) {
+			return;
+		}
+		Inventory inv = p.getInventory();
+		boolean back = inv.getItem(verifySource).is(Items.SHIELD);
+		boolean stillInHotbar = inv.getItem(verifyHotbar).is(Items.SHIELD);
+		debug("verify #{}: shieldBackInSource={} shieldStillInHotbar={}", verifyTicks / 10, back, stillInHotbar);
+		if (back || !stillInHotbar || verifyRetries >= 3 || client.screen != null) {
+			verifying = false;
+			return;
+		}
+		verifyRetries++;
+		LOGGER.info("Hold Shield: restore was not applied, retrying ({}/3)", verifyRetries);
+		swapWithHotbar(client, p, verifySource, verifyHotbar);
+	}
+
+	private static void debug(String message, Object... args) {
+		if (HoldShieldConfig.get().debugLogging) {
+			LOGGER.info("[debug] " + message, args);
+		}
 	}
 
 	/** One SWAP click between a main-inventory slot (9-35) and a hotbar slot, sent through the player's own menu. */

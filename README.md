@@ -6,7 +6,7 @@ A client-side Minecraft (Java Edition) Fabric mod. Hold a key and a shield from 
 
 ## Features
 
-- One rebindable keybind (default: `V`), listed in *Options → Controls*.
+- One rebindable keybind (default: `V`), listed in *Options â†’ Controls*.
 - Works with the shield in the hotbar or in the main inventory.
 - With several shields, the one with the most remaining durability is used.
 - No server-side install needed: it only sends actions a vanilla client can send (hotbar selection, inventory slot clicks, use item), so it works on vanilla servers.
@@ -32,6 +32,16 @@ cd mc-1.21.11   # or mc-26.3
 ```
 
 The mod jar is written to `build/libs/holdshield-<version>.jar`.
+
+## Settings
+
+Settings are stored in `config/holdshield.json` and can be changed in game: bind the *Open Hold Shield settings* key in *Options → Controls* (unbound by default) and press it.
+
+| Option | Values | Meaning |
+|--------|--------|---------|
+| `enabled` | on / off | Turn the mod off without removing it. |
+| `priority` | `DURABILITY` (default), `HOTBAR_FIRST`, `INVENTORY_FIRST` | Which shield to use when you carry several. |
+| `debugLogging` | on / off | Log every swap and restore (useful for bug reports). |
 
 ## Behaviour on hotbar change
 
