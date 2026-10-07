@@ -28,6 +28,11 @@ public final class HoldShieldConfig {
 
 	public boolean enabled = true;
 	public Priority priority = Priority.DURABILITY;
+	/**
+	 * First person only: show the item you were holding in the right hand and the shield in the left hand,
+	 * instead of the shield replacing your item. Purely visual.
+	 */
+	public boolean visualOffhand = true;
 	/** Log every swap / restore decision (for bug reports). */
 	public boolean debugLogging = false;
 

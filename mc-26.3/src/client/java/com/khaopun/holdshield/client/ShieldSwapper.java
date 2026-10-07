@@ -74,6 +74,32 @@ public final class ShieldSwapper {
 	private int originalSel;
 	private LocalPlayer player;
 	private ClientLevel level;
+	private boolean visualSwap;
+
+	/**
+	 * What the first-person view should show while a round is active: {main hand item, off hand item}.
+	 * The item that was in the main hand before the swap is shown in the right hand and the raised shield in the
+	 * left hand. Returns null when nothing should be faked. This only affects rendering, never the real inventory.
+	 */
+	public ItemStack[] visualHands(LocalPlayer p) {
+		if (phase != Phase.ACTIVE || !visualSwap || p != player || !HoldShieldConfig.get().visualOffhand) {
+			return null;
+		}
+		Inventory inv = p.getInventory();
+		ItemStack shield = inv.getItem(shieldHotbar);
+		if (!shield.is(Items.SHIELD)) {
+			return null;
+		}
+		ItemStack original;
+		if (sourceInvSlot >= 0) {
+			original = inv.getItem(sourceInvSlot);
+		} else if (originalSel != shieldHotbar) {
+			original = inv.getItem(originalSel);
+		} else {
+			original = ItemStack.EMPTY;
+		}
+		return new ItemStack[] {original, shield};
+	}
 
 	public void tick(Minecraft client, boolean keyDown) {
 		LocalPlayer p = client.player;
@@ -147,6 +173,8 @@ public final class ShieldSwapper {
 		originalSel = sel;
 		player = p;
 		level = client.level;
+		// Only fake the hands when the real main hand actually changes (shield already in hand: nothing to fake).
+		visualSwap = best != sel;
 		if (best < Inventory.getSelectionSize()) {
 			shieldHotbar = best;
 			sourceInvSlot = -1;

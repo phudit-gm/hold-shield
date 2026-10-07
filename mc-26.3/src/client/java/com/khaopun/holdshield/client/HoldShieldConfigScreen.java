@@ -35,12 +35,16 @@ public class HoldShieldConfigScreen extends Screen {
 				.create(x, y + 24, 200, 20, Component.translatable("holdshield.config.priority"),
 						(button, value) -> config.priority = value));
 
+		addRenderableWidget(CycleButton.onOffBuilder(config.visualOffhand).create(
+				x, y + 48, 200, 20, Component.translatable("holdshield.config.visual"),
+				(button, value) -> config.visualOffhand = value));
+
 		addRenderableWidget(CycleButton.onOffBuilder(config.debugLogging).create(
-				x, y + 48, 200, 20, Component.translatable("holdshield.config.debug"),
+				x, y + 72, 200, 20, Component.translatable("holdshield.config.debug"),
 				(button, value) -> config.debugLogging = value));
 
 		addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
-				.bounds(x, y + 84, 200, 20).build());
+				.bounds(x, y + 108, 200, 20).build());
 	}
 
 	@Override

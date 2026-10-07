@@ -8,5 +8,6 @@
 	"holdshield.config.priority.durability": "Most durability",
 	"holdshield.config.priority.hotbar_first": "Hotbar first",
 	"holdshield.config.priority.inventory_first": "Inventory first",
+	"holdshield.config.visual": "Shield in left hand (view only)",
 	"holdshield.config.debug": "Debug logging"
 }

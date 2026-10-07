@@ -15,6 +15,11 @@ public class HoldShieldClient implements ClientModInitializer {
 	private static KeyMapping settingsKey;
 	private static final ShieldSwapper SWAPPER = new ShieldSwapper();
 
+	/** Used by the render mixins to ask what the first-person hands should show. */
+	public static ShieldSwapper swapper() {
+		return SWAPPER;
+	}
+
 	@Override
 	public void onInitializeClient() {
 		holdKey = KeyMappingHelper.registerKeyMapping(

@@ -1,0 +1,14 @@
+{
+	"required": false,
+	"minVersion": "0.8",
+	"package": "com.khaopun.holdshield.client.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"LivingEntityVisualMixin",
+		"FirstPersonHandsVisualMixin",
+		"GameRendererVisualMixin"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}
