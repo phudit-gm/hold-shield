@@ -50,6 +50,8 @@ public final class ShieldSwapper {
 	private int sourceInvSlot = -1;
 	private LocalPlayer player;
 	private ClientLevel level;
+	/** Ticks left to wait after the swap before raising the shield, so equip animations of other mods can finish. */
+	private int useDelay;
 
 	public void tick(Minecraft client, boolean keyDown) {
 		LocalPlayer p = client.player;
@@ -98,6 +100,10 @@ public final class ShieldSwapper {
 			phase = Phase.IDLE;
 			return;
 		}
+		if (useDelay > 0) {
+			useDelay--;
+			return;
+		}
 		// Keep the shield raised: vanilla releases the item whenever the use key is not down.
 		client.options.keyUse.setDown(true);
 		if (!p.isUsingItem()) {
@@ -118,12 +124,15 @@ public final class ShieldSwapper {
 		player = p;
 		level = client.level;
 		sourceInvSlot = slot;
+		useDelay = slot >= 0 ? Math.max(0, HoldShieldConfig.get().raiseDelayTicks) : 0;
 		if (slot >= 0) {
 			swapWithOffhand(client, p, slot);
 		}
 		phase = Phase.ACTIVE;
-		client.options.keyUse.setDown(true);
-		client.gameMode.useItem(p, InteractionHand.OFF_HAND);
+		if (useDelay == 0) {
+			client.options.keyUse.setDown(true);
+			client.gameMode.useItem(p, InteractionHand.OFF_HAND);
+		}
 	}
 
 	/** Slot (0-35) of the shield with the most durability left; ties go to the hotbar, then the lowest index. */

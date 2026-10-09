@@ -30,6 +30,8 @@ public final class HoldShieldConfig {
 	public Priority priority = Priority.DURABILITY;
 	/** Log every swap / restore decision (for bug reports). */
 	public boolean debugLogging = false;
+	/** Ticks to wait after moving the shield to the offhand before raising it (other mods may play an equip animation). */
+	public int raiseDelayTicks = 1;
 
 	public static HoldShieldConfig get() {
 		if (instance == null) {
