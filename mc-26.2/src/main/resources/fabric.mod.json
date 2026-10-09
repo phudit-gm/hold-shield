@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "holdshield",
+	"version": "${version}",
+	"name": "Hold Shield",
+	"description": "Hold a key to swap a shield into the main hand and raise it; release to restore every item to its original slot.",
+	"authors": [
+		"Khaopun"
+	],
+	"contact": {
+		"homepage": "",
+		"sources": ""
+	},
+	"license": "MIT",
+	"icon": "assets/holdshield/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.khaopun.holdshield.HoldShield"
+		],
+		"client": [
+			"com.khaopun.holdshield.client.HoldShieldClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

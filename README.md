@@ -1,8 +1,8 @@
 # Hold Shield
 
-A client-side Minecraft (Java Edition) Fabric mod. Hold a key and a shield from **anywhere in your inventory** is swapped into your main hand and raised. Release the key and every item goes back to the exact slot it came from. The offhand is never touched.
+A client-side Minecraft (Java Edition) Fabric mod. Hold a key and a shield from **anywhere in your inventory** is swapped into your **offhand** and raised. Release the key and every item goes back to the exact slot it came from (an empty offhand is restored as empty).
 
-> Status: the swap/restore logic is implemented for both versions and compiles. It has **not yet been tested in game** (singleplayer, dedicated server, edge cases); see the acceptance criteria in the brief.
+> Status: used in game on 26.3 and 26.2 (singleplayer) with the Punchy! mod. The 1.21.11 build has not been re-tested since the offhand change.
 
 ## Features
 
@@ -18,6 +18,7 @@ A client-side Minecraft (Java Edition) Fabric mod. Hold a key and a shield from 
 |-----------|--------|------|-----------|
 | 1.21.11   | Fabric | 21   | [`mc-1.21.11`](mc-1.21.11) |
 | 26.3      | Fabric | 25   | [`mc-26.3`](mc-26.3) |
+| 26.2      | Fabric | 25   | [`mc-26.2`](mc-26.2) |
 
 Each version is its own Gradle project, since Minecraft internals differ between them.
 
@@ -27,7 +28,7 @@ The Loom Gradle plugin used by the templates needs a **JDK 25** to run Gradle, e
 
 ```powershell
 $env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot'
-cd mc-1.21.11   # or mc-26.3
+cd mc-1.21.11   # or mc-26.3 / mc-26.2
 .\gradlew.bat build
 ```
 
@@ -41,6 +42,7 @@ Settings are stored in `config/holdshield.json` and can be changed in game: bind
 |--------|--------|---------|
 | `enabled` | on / off | Turn the mod off without removing it. |
 | `priority` | `DURABILITY` (default), `HOTBAR_FIRST`, `INVENTORY_FIRST` | Which shield to use when you carry several. |
+| `raiseDelayTicks` | integer, default `1` | Ticks to wait after the offhand swap before the shield is raised, so the Punchy! equip animation can finish and the shield is drawn. |
 | `debugLogging` | on / off | Log every swap and restore (useful for bug reports). |
 
 ## Behaviour on hotbar change

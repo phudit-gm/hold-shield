@@ -1,0 +1,12 @@
+{
+	"key.holdshield.hold": "Hold shield (swap to main hand)",
+	"key.holdshield.settings": "Open Hold Shield settings",
+	"key.category.holdshield.main": "Hold Shield",
+	"holdshield.config.title": "Hold Shield Settings",
+	"holdshield.config.enabled": "Enabled",
+	"holdshield.config.priority": "Shield choice",
+	"holdshield.config.priority.durability": "Most durability",
+	"holdshield.config.priority.hotbar_first": "Hotbar first",
+	"holdshield.config.priority.inventory_first": "Inventory first",
+	"holdshield.config.debug": "Debug logging"
+}

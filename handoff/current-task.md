@@ -1,11 +1,20 @@
-# Hold Shield - handoff (2026-10-07)
+# Hold Shield - handoff (2026-10-09)
 
 Client-side Fabric mod: hold `V` to swap a shield into the main hand and raise it, release to restore.
 Repo: https://github.com/phudit-gm/hold-shield (private). Two Gradle projects: `mc-1.21.11` (Java 21 target) and
 `mc-26.3` (Java 25). Gradle must run on **JDK 25** for both (Loom needs it):
 `C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot`.
 
-## State of `main` (stable, tested by the user in game)
+## 2026-10-09 update
+- `feature/real-offhand` is merged into `main`: the shield now goes into the REAL offhand (symmetric SWAP click, an empty
+  left hand is restored) and `raiseDelayTicks` (default 1) delays the raise so Punchy's equip animation does not hide it.
+  This replaces the experimental `feature/offhand-visual` fake-hands approach (that branch is obsolete, can be deleted).
+- New project `mc-26.2` (copy of `mc-26.3`; only differences: `InputConstants.Type.KEYSYM` instead of `KEYBOARD`,
+  `minecraft ~26.2`, Fabric API `0.161.0+26.2`). Installed in the Prism instance `Survival 26.2` as
+  `holdshield-1.0.0-MC26.2.jar`, used with Punchy 2.8e.
+- Sections below that describe the one-hand SWAP/empty-hand behaviour and the fake-hands branch are historical.
+
+## State of `main` before the offhand change (historical)
 - Keybind `V` (rebindable), unbound "Open settings" key, `config/holdshield.json`
   (`enabled`, `priority` = DURABILITY | HOTBAR_FIRST | INVENTORY_FIRST, `debugLogging`).
 - Shield in hotbar -> select that slot, restore the old selection on release.
