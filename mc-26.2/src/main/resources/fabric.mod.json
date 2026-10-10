@@ -3,13 +3,14 @@
 	"id": "holdshield",
 	"version": "${version}",
 	"name": "Hold Shield",
-	"description": "Hold a key to swap a shield into the main hand and raise it; release to restore every item to its original slot.",
+	"description": "Hold a key to swap a shield into your offhand (or main hand) and raise it; release to put every item back where it was.",
 	"authors": [
 		"Khaopun"
 	],
 	"contact": {
-		"homepage": "",
-		"sources": ""
+		"homepage": "https://github.com/phudit-gm/hold-shield",
+		"sources": "https://github.com/phudit-gm/hold-shield",
+		"issues": "https://github.com/phudit-gm/hold-shield/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/holdshield/icon.png",
@@ -30,5 +31,8 @@
 		"minecraft": "~26.2",
 		"java": ">=25",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": "*"
 	}
 }

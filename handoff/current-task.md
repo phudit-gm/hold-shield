@@ -1,9 +1,39 @@
-# Hold Shield - handoff (2026-10-09)
+# Hold Shield - handoff (2026-10-11)
 
 Client-side Fabric mod: hold `V` to swap a shield into the main hand and raise it, release to restore.
 Repo: https://github.com/phudit-gm/hold-shield (private). Two Gradle projects: `mc-1.21.11` (Java 21 target) and
 `mc-26.3` (Java 25). Gradle must run on **JDK 25** for both (Loom needs it):
 `C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot`.
+
+## 2026-10-11 update (release prep, version 1.1.0)
+Latest state of `main`; everything below this section is older history.
+- Three Gradle projects, each its own mod jar: `mc-1.21.11` (Java 21 target), `mc-26.2`, `mc-26.3` (Java 25). Gradle runs on
+  JDK 25 for all (`C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot`). Jar name: `holdshield-1.1.0+mc<ver>.jar`.
+- Config screen is a plain vanilla `Screen` (no Cloth Config). Reachable from Mod Menu (`HoldShieldModMenu`, compile-only
+  dependency, `suggests` in fabric.mod.json) or the unbound "Open settings" key. Mod Menu versions: 17.0.1 (1.21.11),
+  20.0.3 (26.2), 21.0.0 (26.3).
+- Options (all in `HoldShieldConfig`, saved to `config/holdshield.json`): `enabled`, `activation` HOLD|TOGGLE, `priority`
+  HIGHEST_DURABILITY|LOWEST_DURABILITY|HOTBAR_FIRST|INVENTORY_FIRST|FIRST_FOUND (old `DURABILITY` is read via
+  `@SerializedName alternate`), `minDurabilityPercent`, `lowDurabilityWarningPercent`, `hand` OFFHAND|MAIN_HAND,
+  `totemProtection` OFF|USE_MAIN_HAND|DONT_RAISE, `raiseDelayTicks` (number field, 0-20), `actionBarMessages`, `debugLogging`.
+  Values are clamped in `sanitize()` when loading; the screen's number fields only accept whole numbers in range.
+- `ShieldSwapper` now handles both hands: OFFHAND = one SWAP click with button 40 (as before); MAIN_HAND = the old
+  hotbar-select / SWAP-with-selected-slot logic from before commit `5467d11`, with its known quirk (empty selected slot +
+  shield from inventory: the shield stays in that slot). `findBestShield` finally honours `priority` (before, it was
+  ignored). Toggle mode lives in `HoldShieldClient` (`toggledOn`; reset when `SWAPPER.isActive()` goes false).
+- Version differences between the three source trees are only API names: 1.21.11 uses `GuiGraphics`/`render`/`setScreen`/
+  `client.screen`/`ClickType`/`handleInventoryMouseClick`/`displayClientMessage(text, true)`; 26.x uses
+  `GuiGraphicsExtractor`/`extractRenderState`/`setScreenAndShow`/`client.gui.screen()`/`ContainerInput`/
+  `handleContainerInput`/`sendOverlayMessage`. 26.2 differs from 26.3 only by `InputConstants.Type.KEYSYM`.
+- Release prep done: MIT `LICENSE` (root + each project; the template CC0 files were replaced), fabric.mod.json contact
+  links to the GitHub repo, one root CI workflow (`.github/workflows/build.yml`, matrix over the three projects; the old
+  per-project workflows could never run and were removed), listing text + checklist in `release/MODRINTH.md`.
+- Test status: built OK on all three. Played in game ONLY on 26.2 (Survival 26.2, with Punchy 2.8e) up to the Mod Menu
+  entry; the settings overhaul (main hand, toggle, totem, number fields) has NOT been confirmed in game anywhere, and
+  26.3 / 1.21.11 have not been run since. Installed in Prism: `Survival 26.2` has the 1.1.0-era jar named
+  `holdshield-1.0.0-MC26.2.jar`; old jar backed up in `Survival 26.2\minecraft\mods-backup`. Other instances still hold older jars.
+- Before publishing: make the GitHub repo public (mod metadata links to it), test 26.3 and 1.21.11, add screenshots,
+  tag `v1.1.0` and attach the jars (see `release/MODRINTH.md`). `feature/offhand-visual` is obsolete and can be deleted.
 
 ## 2026-10-09 update
 - `feature/real-offhand` is merged into `main`: the shield now goes into the REAL offhand (symmetric SWAP click, an empty

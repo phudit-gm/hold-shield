@@ -1,14 +1,17 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
-
+# Build every version on each push / pull request (Loom needs JDK 25 for all of them).
 name: build
 on: [pull_request, push]
 
 jobs:
   build:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [mc-1.21.11, mc-26.2, mc-26.3]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v6
@@ -26,5 +29,5 @@ jobs:
       - name: capture build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: Artifacts
-          path: build/libs/
+          name: holdshield-${{ matrix.project }}
+          path: ${{ matrix.project }}/build/libs/*.jar
