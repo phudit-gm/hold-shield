@@ -20,6 +20,9 @@
 		],
 		"client": [
 			"com.khaopun.holdshield.client.HoldShieldClient"
+		],
+		"modmenu": [
+			"com.khaopun.holdshield.client.HoldShieldModMenu"
 		]
 	},
 	"depends": {

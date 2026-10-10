@@ -14,19 +14,38 @@ public class HoldShieldClient implements ClientModInitializer {
 	private static KeyMapping holdKey;
 	private static KeyMapping settingsKey;
 	private static final ShieldSwapper SWAPPER = new ShieldSwapper();
+	/** Toggle mode: the shield should be up until the next press. */
+	private static boolean toggledOn;
 
 	@Override
 	public void onInitializeClient() {
 		holdKey = KeyMappingHelper.registerKeyMapping(
 				new KeyMapping("key.holdshield.hold", InputConstants.Type.KEYSYM, InputConstants.KEY_V, CATEGORY));
 
-		// Unbound by default; Mod Menu support can be added later.
+		// Unbound by default; the settings screen is also reachable from Mod Menu.
 		settingsKey = KeyMappingHelper.registerKeyMapping(
 				new KeyMapping("key.holdshield.settings", InputConstants.UNKNOWN.getValue(), CATEGORY));
 
 		// Start of tick, so the swap and the "use item" happen before vanilla handles input this tick.
 		ClientTickEvents.START_CLIENT_TICK.register(client -> {
-			SWAPPER.tick(client, holdKey.isDown());
+			boolean wantShield;
+			if (HoldShieldConfig.get().activation == HoldShieldConfig.Activation.TOGGLE) {
+				while (holdKey.consumeClick()) {
+					toggledOn = !toggledOn;
+				}
+				wantShield = toggledOn;
+			} else {
+				while (holdKey.consumeClick()) {
+					// Hold mode only looks at isDown(); drop the queued presses.
+				}
+				toggledOn = false;
+				wantShield = holdKey.isDown();
+			}
+			SWAPPER.tick(client, wantShield);
+			if (toggledOn && !SWAPPER.isActive()) {
+				// The round did not start or was cancelled (no shield, screen, shield broke...): next press raises.
+				toggledOn = false;
+			}
 			while (settingsKey.consumeClick()) {
 				client.setScreenAndShow(new HoldShieldConfigScreen(client.gui.screen()));
 			}
