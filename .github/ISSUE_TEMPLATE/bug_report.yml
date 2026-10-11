@@ -1,0 +1,50 @@
+name: Bug report
+description: Something in Hold Shield does not work as expected
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Hold Shield version
+      placeholder: 1.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: minecraft
+    attributes:
+      label: Minecraft version
+      options: ["1.21.11", "26.2", "26.3", "Other (say which below)"]
+    validations:
+      required: true
+  - type: input
+    id: mods
+    attributes:
+      label: Fabric Loader, Fabric API and other mods
+      description: Mods that change inventory, hands or shield animation (Punchy, Better Combat, ...) matter most.
+    validations:
+      required: true
+  - type: textarea
+    id: settings
+    attributes:
+      label: Your settings
+      description: Paste `config/holdshield.json`.
+      render: json
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect
+      description: Include which hand mode (offhand / main hand), hold or toggle, and what was in your offhand and hotbar.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Turn on the debug option in the config screen, reproduce, then paste the `holdshield` lines from `logs/latest.log`.
+      render: text
